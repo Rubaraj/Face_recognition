@@ -7,6 +7,8 @@ import cv2
 
 #Library to use Email
 import smtplib
+import imghdr
+from email.message import EmailMessage
 #Library to get Environment variable
 import os
 
@@ -48,35 +50,48 @@ while True:
         
         print("Notification: " + name)
 
-        #Send Email if there is a Unknown Person
-        if name == "Unknown" and flag == "notsent":
-            try:
-                with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
-                    smtp.ehlo()
-                    #Encrypting SMTP Traffic
-                    smtp.starttls()
-                    smtp.ehlo()
-                    #Login to Gmail
-                    smtp.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
-                    subject = 'Intruder Alert !'
-                    body = 'Unknown Person in the Home'
-                    #Framing the message
-                    msg = f'Subject: {subject} \n\n {body}'
-                    #Parameter 1 - From address
-                    #Parameter 2 - TO Address
-                    #Parameter 3 - Mail Content
-                    smtp.sendmail(EMAIL_ADDRESS,'rubarajankcs@hotmail.com',msg)
-                flag = "MailSent"
-                print("Send Email")
-            except SMTPException:
-                print("Error: unable to send email")
-
         #Frame controls in video mode
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
         cv2.rectangle(frame, (left, bottom -35), (right, bottom), (0, 0, 255), cv2.FILLED)
         #Font style for Focus BOX
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+        #Send Email if there is a Unknown Person
+        if name == "Unknown" and flag == "notsent":
+            try:
+                cv2.imwrite('images/intruder.png',frame)
+                    
+                #Framing the message
+                msg = EmailMessage()
+                msg['Subject'] = 'Intruder Alert !'
+                #From address
+                msg['From'] = EMAIL_ADDRESS                    
+                #To address
+                msg['To'] = 'rubarajankcs@hotmail.com'
+                
+                msg.set_content('Intruder Attached')
+                with open('images/intruder.png','rb') as f:
+                    file_data = f.read()
+                    file_type = imghdr.what(f.name)
+                    file_name = f.name
+
+                msg.add_attachment(file_data,maintype = 'image',subtype=file_type, filename= file_name)
+                
+                #Login to Gmail
+                with smtplib.SMTP_SSL('smtp.gmail.com',465) as smtp:
+                    smtp.login(EMAIL_ADDRESS,EMAIL_PASSWORD)
+                    smtp.send_message(msg)
+
+                flag = "MailSent"
+                print("Send Email")
+                if os.path.exists("images/intruder.png"):
+                    os.remove("images/intruder.png")
+                else:
+                    print("The file does not exist") 
+
+            except Exception:
+                print("Error: unable to send email")
 
     cv2.imshow('Webcam_facerecognition', frame)
 
