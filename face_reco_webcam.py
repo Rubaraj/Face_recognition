@@ -2,7 +2,7 @@
 import numpy as np
 #Library to identify face properties
 import face_recognition as fr
-#real-time access to computer hardware in this case camera
+#real-time access to computer hardware in this case camera --OPENCV
 import cv2
 
 #Library to use Email
@@ -24,6 +24,7 @@ Known_face_encoding = fr.face_encodings(Known_image)[0]
 known_face_encondings = [Known_face_encoding]
 known_face_names = ["rubarajan"]
 
+#Mail send flag
 flag = "notsent"
 
 while True: 
@@ -61,15 +62,19 @@ while True:
                     body = 'Unknown Person in the Home'
                     #Framing the message
                     msg = f'Subject: {subject} \n\n {body}'
+                    #Parameter 1 - From address
+                    #Parameter 2 - TO Address
+                    #Parameter 3 - Mail Content
                     smtp.sendmail(EMAIL_ADDRESS,'rubarajankcs@hotmail.com',msg)
                 flag = "MailSent"
                 print("Send Email")
             except SMTPException:
                 print("Error: unable to send email")
 
+        #Frame controls in video mode
         cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
-
         cv2.rectangle(frame, (left, bottom -35), (right, bottom), (0, 0, 255), cv2.FILLED)
+        #Font style for Focus BOX
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
